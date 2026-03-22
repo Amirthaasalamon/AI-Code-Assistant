@@ -1,35 +1,39 @@
 from ollama_client import ask_ollama
 from cleaner import clean_code, optimize_context
 
-def convert_code(code):
+def convert_code(user_input, model="deepseek-coder", files_context=""):
     try:
-        # Clean the code
-        cleaned = clean_code(code)
-
-        # Optimize context (limit size)
+        cleaned = clean_code(user_input)
         context = optimize_context(cleaned)
 
-        # Prompt for AI
         prompt = f"""
-You are a senior software engineer.
+You are an intelligent, friendly, and professional AI assistant.
 
-Convert the following code into modern Python.
+Your roles:
+1. General Chat Assistant
+2. Legacy Code Modernization Expert
 
-Rules:
-- Keep logic EXACT
+Behavior:
+- Greet user if message is simple (hi, hello)
+- If normal chat → respond naturally
+- If code → convert to Python + explain
 - Do NOT hallucinate
-- If unclear, say UNKNOWN
+- If unsure → say UNKNOWN
 
-Code:
+User Input:
 {context}
 
+Project Files:
+{files_context}
+
 Output:
-- Python code
-- Explanation
+1. Converted Code (if any)
+2. Explanation
+3. Improvements
+4. Friendly reply
 """
 
-        # Call Ollama
-        response = ask_ollama(prompt)
+        response = ask_ollama(prompt, model)
 
         return response
 
