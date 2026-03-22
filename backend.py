@@ -1,32 +1,36 @@
+# backend.py
 from fastapi import FastAPI
 from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
-import ollama  # official Python client
+import requests
+import uvicorn
+import os
 
-app = FastAPI(title="AI Code Assistant Backend")
+app = FastAPI()
 
-# Allow CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # tighten in production
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-class AIRequest(BaseModel):
-    prompt: str
+class GenerateRequest(BaseModel):
     model: str
+    prompt: str
+    stream: bool = False
+
+# Replace this with your Ollama server URL if needed
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
 
 @app.post("/api/generate")
-def generate(req: AIRequest):
+def generate(req: GenerateRequest):
+    url = f"{OLLAMA_URL}/api/generate"
+    payload = {
+        "model": req.model,
+        "prompt": req.prompt,
+        "stream": req.stream
+    }
     try:
-        # Call Ollama's Python generate
-        result = ollama.generate(model=req.model, prompt=req.prompt)
-        return {"response": result.get("response", "")}
+        response = requests.post(url, json=payload, timeout=120)
+        response.raise_for_status()
+        return {"response": response.json().get("response", "No response")}
     except Exception as e:
-        return {"response": f"❌ Error calling Ollama: {e}"}
+        return {"response": f"❌ Error calling Ollama backend: {e}"}
 
-# Run the server
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=11434)
+    # Use environment variable PORT for deployment platforms
+    port = int(os.getenv("PORT", 11434))
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")

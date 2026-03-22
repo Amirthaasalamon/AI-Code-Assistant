@@ -1,3 +1,4 @@
+# app.py
 import streamlit as st
 from utils import ask_ollama
 from file_handler import read_uploaded_files
@@ -25,7 +26,6 @@ if "theme" not in st.session_state:
 # -------------------------------
 with st.sidebar:
     st.title("⚙️ Settings")
-
     theme = st.radio("🌗 Theme", ["Ocean", "Light"])
     st.session_state.theme = theme
 
@@ -85,34 +85,29 @@ for msg in st.session_state.messages:
 user_input = st.chat_input("Ask something or paste your code...")
 
 if user_input:
-    # Add user message to session
+    # Add user message
     st.session_state.messages.append({"role": "user", "content": user_input})
+
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # -------------------------------
-    # FILE CONTEXT
-    # -------------------------------
+    # File context
     files_context = ""
     for file in st.session_state.files_data:
         files_context += f"\n\nFile: {file['name']}\n{file['content']}"
 
-    # -------------------------------
-    # SMART PROMPT
-    # -------------------------------
+    # Smart prompt
     prompt = f"""
 You are a professional AI assistant.
-
-Your Roles:
-1. 💬 Chat Assistant
-2. 💻 Legacy Code Modernization Expert (Java/COBOL → Python)
+Roles:
+1. Chat + Code AI
+2. Legacy Code Modernization (Java/COBOL → Python)
 
 Instructions:
-- Always **analyze the code carefully**.
-- Convert **legacy code exactly to Python**, preserving logic.
-- If the user input asks for an output, **simulate the result using Python logic**.
-- Always double-check arithmetic or logical calculations.
-- If unsure about the result, say UNKNOWN.
+- Analyze code carefully
+- Convert legacy code exactly to Python
+- If user asks for output, simulate result correctly
+- Always double-check arithmetic or logic
 
 User Input:
 {user_input}
@@ -121,15 +116,13 @@ Project Files:
 {files_context}
 
 Output Format:
-1. 👨‍💻 Converted Code (if any)
+1. 👨‍💻 Converted Code
 2. 📖 Explanation
 3. 🚀 Improvements
 4. 💬 Friendly Reply
 """
 
-    # -------------------------------
     # AI RESPONSE
-    # -------------------------------
     with st.chat_message("assistant"):
         with st.spinner("Thinking... 🤖"):
             BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:11434")
