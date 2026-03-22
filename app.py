@@ -133,11 +133,7 @@ Output Format:
     with st.chat_message("assistant"):
         with st.spinner("Thinking... 🤖"):
             BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:11434")
-            try:
-                response = ask_ollama(prompt, model, backend_url=BACKEND_URL)
-            except Exception as e:
-                response = f"❌ Error: {e}"
-
+            response = ask_ollama(prompt, model, backend_url=BACKEND_URL)
             st.markdown(response)
 
     # Save response
