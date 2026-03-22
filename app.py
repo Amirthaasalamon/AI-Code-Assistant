@@ -1,6 +1,7 @@
 import streamlit as st
 from utils import ask_ollama
 from file_handler import read_uploaded_files
+import os
 
 # -------------------------------
 # CONFIG
@@ -84,9 +85,8 @@ for msg in st.session_state.messages:
 user_input = st.chat_input("Ask something or paste your code...")
 
 if user_input:
-    # Add user message
+    # Add user message to session
     st.session_state.messages.append({"role": "user", "content": user_input})
-
     with st.chat_message("user"):
         st.markdown(user_input)
 
@@ -101,25 +101,18 @@ if user_input:
     # SMART PROMPT
     # -------------------------------
     prompt = f"""
-You are an intelligent, friendly, and professional AI assistant.
+You are a professional AI assistant.
 
 Your Roles:
-1. 💬 Chat Assistant (friendly & conversational)
+1. 💬 Chat Assistant
 2. 💻 Legacy Code Modernization Expert (Java/COBOL → Python)
 
-Behavior Rules:
-- If user says "hi", greet warmly
-- If normal question → answer clearly
-- If code → convert to Python
-- Always explain clearly
-- Do NOT hallucinate
-- If unsure → say UNKNOWN
-
-Code Handling:
-- Detect legacy code automatically
-- Convert to clean Python
-- Improve readability
-- Keep logic EXACT
+Instructions:
+- Always **analyze the code carefully**.
+- Convert **legacy code exactly to Python**, preserving logic.
+- If the user input asks for an output, **simulate the result using Python logic**.
+- Always double-check arithmetic or logical calculations.
+- If unsure about the result, say UNKNOWN.
 
 User Input:
 {user_input}
@@ -139,12 +132,13 @@ Output Format:
     # -------------------------------
     with st.chat_message("assistant"):
         with st.spinner("Thinking... 🤖"):
+            BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:11434")
             try:
-                response = ask_ollama(prompt, model)
+                response = ask_ollama(prompt, model, backend_url=BACKEND_URL)
             except Exception as e:
                 response = f"❌ Error: {e}"
 
             st.markdown(response)
 
-    # Save response
+    # Save AI response to session
     st.session_state.messages.append({"role": "assistant", "content": response})
